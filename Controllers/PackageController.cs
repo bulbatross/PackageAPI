@@ -1,14 +1,16 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
 
+[assembly: InternalsVisibleToAttribute("PackageControllerTests")]
 namespace PackageAPI.Controllers;
 
 [ApiController]
 [Route("[controller]")]
 public class PackageController : ControllerBase
 {
-    private static ConcurrentBag<Package> packages = new ConcurrentBag<Package>();
+    internal static ConcurrentBag<Package> packages = new ConcurrentBag<Package>();
 
     [HttpGet]
     public IActionResult GetPackages()
@@ -26,8 +28,10 @@ public class PackageController : ControllerBase
         }
         package.KolliId = GenerateUniqueKolliId();
         packages.Add(package);
+        var message = "Kolli was successfully created";
+        var response = new { Message = message, KolliId = package.KolliId };
 
-        return Ok();
+        return Ok(response);
     }
 
     [HttpGet("{kolliId}")]
@@ -43,17 +47,21 @@ public class PackageController : ControllerBase
     }
     private bool IsValidPackage(Package package)
     {
-        return package.Weight <= 20000 &&
-               package.Length <= 60 &&
-               package.Height <= 60 &&
-               package.Width <= 60;
+        return package.Weight > 0 &&
+           package.Length > 0 &&
+           package.Height > 0 &&
+           package.Width > 0 &&
+           package.Weight <= 20000 &&
+           package.Length <= 60 &&
+           package.Height <= 60 &&
+           package.Width <= 60;
     }
     private string GenerateUniqueKolliId()
     {
         var timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
         var random = new Random();
-        var randomNumbers = random.Next(1, 9).ToString();
+        var randomNumber = random.Next(1, 9).ToString();
         
-        return $"999{timestamp}{randomNumbers}";
+        return $"999{timestamp}{randomNumber}";
     }
 }
